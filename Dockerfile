@@ -1,5 +1,5 @@
 FROM stackbrew/ubuntu:raring
-MAINTAINER github.com/jottr 
+MAINTAINER github.com/jottr
 
 ## Speed and Space
 # see https://gist.github.com/jpetazzo/6127116
@@ -12,7 +12,7 @@ RUN echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache
 RUN apt-get -y update && date
 RUN apt-get install -y -q software-properties-common
 RUN add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
-RUN apt-get -y update
+RUN apt-get -yq update
 
 # SHIMS
 ## Hack for initctl
@@ -21,15 +21,23 @@ RUN dpkg-divert --local --rename --add /sbin/initctl
 #RUN ln -s /bin/true /sbin/initctl
 ENV DEBIAN_FRONTEND noninteractive
 
-## MYSQL
-RUN apt-get install -y -q mysql-server mysql-client 
-### Additions to MYSQL
-RUN apt-get install -y -q php5-mysql
+# ruby -> See http://brightbox.com/docs/ruby/ubuntu
+RUN apt-add-repository ppa:brightbox/ruby-ng
+RUN apt-get install -y -q python-software-properties
+RUN apt-get install  -y -q ruby1.9.3
+RUN apt-get install -y -q  rubygems ruby-switch
 
-#RUN /bin/rm -rf /var/lib/mysql/*
 
-ADD initialize_and_start_mysql /usr/sbin/initialize_and_start_mysql
-ADD listen_on_all_addresses.cnf /etc/mysql/conf.d/listen_on_all_addresses.cnf
+# Install gollum
+RUN apt-get install -y -q libicu-dev
+RUN gem install gollum --no-rdoc --no-ri
 
-EXPOSE 3306
-CMD [ "/usr/sbin/initialize_and_start_mysql" ]
+RUN mkdir /srv/gollum
+
+EXPOSE 4040
+EXPOSE 4567
+
+ENTRYPOINT ["/usr/local/bin/gollum"]
+CMD  ["--port 4040", "--live-preview", "--allow-uploads"]
+
+

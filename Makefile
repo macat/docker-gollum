@@ -1,8 +1,10 @@
-imagename=jottr/mysql-server
+imagename=jottr/gollum
 
-build: 
+build:
 	docker build -t $(imagename) .
-	notify-send "Done building $(imagename)." 
+	notify-send "Done building $(imagename)."
+	blink-thinklight 3
 
-clean: 
+
+clean:
 	docker rmi $(imagename)
